@@ -10,7 +10,7 @@ while (true)
   var iter = 1;
   script = $"hostname | ConvertTo-Json";
   session.Execute(script);
-  Console.WriteLine($"loop = {iter} job-count = {i}");
+  Console.WriteLine($"loop = {iter}");
   iter++;
   Thread.Sleep(100);
   session.Close();
