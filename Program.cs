@@ -2,7 +2,6 @@
 using System.Management.Automation.Runspaces;
 using System.Security;
 using System.Text;
-using Newtonsoft.Json;
 
 public class Session
 {
@@ -61,7 +60,10 @@ public class Session
       //Console.WriteLine(z);
     }
     var y = sb.ToString();
-    //sb.Clear();
+    sb.Clear();
+    results.Clear();
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
     return y;
   }
 
