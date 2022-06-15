@@ -39,7 +39,7 @@ public class Session
     {
       var ps = PowerShell.Create();
       ps.Runspace = Runspace;
-      var res = InvokePowershell(script, ps);
+      var res = InvokePowerShell(script, ps);
       ps.Dispose();
       return res;
     }
@@ -49,16 +49,20 @@ public class Session
     }
   }
 
-  private static string InvokePowershell(string scriptContent, PowerShell shell, string[]? ignoredCommandExceptions = null, int timeoutMinutes = 5)
+  private static string InvokePowerShell(string scriptContent, PowerShell shell, string[]? ignoredCommandExceptions = null, int timeoutMinutes = 5)
   {
     shell.AddScript(scriptContent);
     StringBuilder sb = new StringBuilder();
     var results = shell.Invoke();
     foreach (var x in results)
     {
+      //var z = x.ToString();
       sb.AppendLine(x.ToString());
+      //Console.WriteLine(z);
     }
-    return sb.ToString();
+    var y = sb.ToString();
+    //sb.Clear();
+    return y;
   }
 
   public void Close()
