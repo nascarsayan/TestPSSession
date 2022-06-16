@@ -5,9 +5,8 @@ using System.Text;
 
 public class Session
 {
-  // private WSManConnectionInfo connectionInfo;
   private const string ShellUri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell";
-  private Runspace? Runspace { get; set; }
+  private RunspacePool? _runspacePool;
 
   public Session(ConnectionDto connDto)
   {
@@ -19,84 +18,68 @@ public class Session
       SkipCACheck = true,
       SkipCNCheck = true,
     };
-    var initialSessionState = InitialSessionState.CreateDefault();
     var r = RunspaceFactory.CreateRunspace(connectionInfo);
-    r.Open();
-    this.Runspace = r;
+    RunspacePool rsPool = RunspaceFactory.CreateRunspacePool(1, 8, connectionInfo);
+    rsPool.Open();
+    _runspacePool = rsPool;
   }
 
-  public string Execute(string script)
+  public Task<string> Execute(string script)
   {
-    if (Runspace == null)
+    if (_runspacePool == null)
     {
       throw new Exception("Runspace is null");
     }
 
-    if (!Monitor.TryEnter(Runspace, new TimeSpan(1, 0, 0)))
-      throw new Exception("timed out waiting to get lock on runspace");
-    try
-    {
-      var ps = PowerShell.Create();
-      ps.Runspace = Runspace;
-      var res = InvokePowerShell(script, ps);
-      ps.Dispose();
-      return res;
-    }
-    finally
-    {
-      Monitor.Exit(Runspace);
-    }
+    var res = InvokePowerShell(script);
+    return res;
   }
 
-  private static string InvokePowerShell(string scriptContent, PowerShell shell, string[]? ignoredCommandExceptions = null, int timeoutMinutes = 5)
+  private PowerShell GetPowerShellInstance()
   {
+    var pwsh = PowerShell.Create(RunspaceMode.NewRunspace);
+    pwsh.RunspacePool = _runspacePool;
+    return pwsh;
+  }
+
+  private Task<string> InvokePowerShell(string scriptContent, string[]? ignoredCommandExceptions = null, int timeoutMinutes = 5)
+  {
+    PowerShell shell = GetPowerShellInstance();
     shell.AddScript(scriptContent);
-    StringBuilder sb = new StringBuilder();
-    var results = shell.Invoke();
-    foreach (var x in results)
-    {
-      //var z = x.ToString();
-      sb.AppendLine(x.ToString());
-      //Console.WriteLine(z);
-    }
-    var y = sb.ToString();
-    sb.Clear();
-    results.Clear();
-    GC.Collect();
-    GC.WaitForPendingFinalizers();
-    return y;
+    var settings = new PSInvocationSettings{};
+    return Task.Factory.FromAsync(
+      (callback, state) => shell.BeginInvoke(
+        new PSDataCollection<PSObject>(), settings, callback, state),
+        shell.EndInvoke,
+        state: null)
+        .ContinueWith(runTask =>
+        {
+          shell.Dispose();
+          StringBuilder sb = new StringBuilder();
+          foreach (PSObject obj in runTask.Result)
+          {
+            sb.AppendLine(obj.ToString());
+          }
+          var res = new String(sb.ToString());
+          sb.Clear();
+          GC.Collect();
+          GC.WaitForPendingFinalizers();
+          return res;
+        });
   }
 
   public void Close()
   {
-    if (Runspace == null) return;
+    if (_runspacePool == null) return;
     try
     {
-      Runspace.Close();
-      Runspace.Dispose();
+      _runspacePool.Close();
+      _runspacePool.Dispose();
     }
     finally
     {
-      Runspace = null;
+      _runspacePool = null;
     }
-  }
-
-  public void CheckValidity()
-  {
-    if (Runspace == null)
-    {
-      throw new Exception("Runspace is null");
-    }
-
-    if (!Monitor.TryEnter(Runspace, new TimeSpan(1, 0, 0))) return;
-    try
-    {
-      if (Runspace.RunspaceStateInfo.State != RunspaceState.Opened)
-      {
-        throw new Exception($"Runspace is not in Opened state, current state is {Runspace.RunspaceStateInfo.State}");
-      }
-    }
-    finally { Monitor.Exit(Runspace); }
   }
 
   private static SecureString StringToSecureString(string password)
@@ -106,6 +89,26 @@ public class Session
     var securePassword = new SecureString();
     password.ToList().ForEach(x => securePassword.AppendChar(x));
     return securePassword;
+  }
+
+  public void Dispose()
+  {
+    Dispose(true);
+    GC.SuppressFinalize(this);
+  }
+
+  protected virtual void Dispose(bool disposing)
+  {
+    if (_runspacePool == null) return;
+    try
+    {
+      _runspacePool.Close();
+      _runspacePool.Dispose();
+    }
+    finally
+    {
+      _runspacePool = null;
+    }
   }
 
 }
