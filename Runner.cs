@@ -6,6 +6,8 @@ string script;
 var iter = 1;
 while (true)
 {
+  Console.WriteLine("Starting process");
+  Thread.Sleep(30000);
   var session = new Session(connDto);
   for (var i = 1; i <= 20; i++)
   {
@@ -15,9 +17,13 @@ while (true)
     Console.WriteLine(x.Length);
     Thread.Sleep(10);
     Console.WriteLine($"loop = {iter} job-count = {jobCount}");
+    x = null;
+    script = "";
   }
   iter++;
-  session.Close();
+  // session.Close();
   session.Dispose();
+  GC.Collect();
+  GC.WaitForPendingFinalizers();
   Console.WriteLine("Disposed session");
 }

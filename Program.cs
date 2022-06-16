@@ -71,14 +71,17 @@ public class Session
   public void Close()
   {
     if (_runspacePool == null) return;
-    try
+    lock(_runspacePool)
     {
-      _runspacePool.Close();
-      _runspacePool.Dispose();
-    }
-    finally
-    {
-      _runspacePool = null;
+      try
+      {
+        // _runspacePool.Close();
+        _runspacePool.Dispose();
+      }
+      finally
+      {
+        _runspacePool = null;
+      }
     }
   }
 
@@ -91,23 +94,26 @@ public class Session
     return securePassword;
   }
 
+  // public void Dispose()
+  // {
+  //   Dispose(true);
+  //   // GC.SuppressFinalize(this);
+  // }
+
   public void Dispose()
   {
-    Dispose(true);
-    GC.SuppressFinalize(this);
-  }
-
-  protected virtual void Dispose(bool disposing)
-  {
     if (_runspacePool == null) return;
-    try
+    lock (_runspacePool)
     {
-      _runspacePool.Close();
-      _runspacePool.Dispose();
-    }
-    finally
-    {
-      _runspacePool = null;
+      try
+      {
+        // _runspacePool.Close();
+        _runspacePool.Dispose();
+      }
+      finally
+      {
+        _runspacePool = null;
+      }
     }
   }
 
