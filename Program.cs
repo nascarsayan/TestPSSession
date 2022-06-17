@@ -18,8 +18,7 @@ public class Session
       SkipCACheck = true,
       SkipCNCheck = true,
     };
-    var r = RunspaceFactory.CreateRunspace(connectionInfo);
-    RunspacePool rsPool = RunspaceFactory.CreateRunspacePool(1, 8, connectionInfo);
+    RunspacePool rsPool = RunspaceFactory.CreateRunspacePool(1, 4, connectionInfo);
     rsPool.Open();
     _runspacePool = rsPool;
   }
@@ -46,10 +45,11 @@ public class Session
   {
     PowerShell shell = GetPowerShellInstance();
     shell.AddScript(scriptContent);
-    var settings = new PSInvocationSettings{};
+    var settings = new PSInvocationSettings { };
+    var pso = new PSDataCollection<PSObject>();
     return Task.Factory.FromAsync(
       (callback, state) => shell.BeginInvoke(
-        new PSDataCollection<PSObject>(), settings, callback, state),
+        pso, settings, callback, state),
         shell.EndInvoke,
         state: null)
         .ContinueWith(runTask =>
@@ -62,27 +62,11 @@ public class Session
           }
           var res = new String(sb.ToString());
           sb.Clear();
-          GC.Collect();
-          GC.WaitForPendingFinalizers();
+          runTask.Result.Dispose();
+          pso.Dispose();
+          GC.Collect(); GC.WaitForPendingFinalizers();
           return res;
         });
-  }
-
-  public void Close()
-  {
-    if (_runspacePool == null) return;
-    lock(_runspacePool)
-    {
-      try
-      {
-        // _runspacePool.Close();
-        _runspacePool.Dispose();
-      }
-      finally
-      {
-        _runspacePool = null;
-      }
-    }
   }
 
   private static SecureString StringToSecureString(string password)
@@ -94,29 +78,19 @@ public class Session
     return securePassword;
   }
 
-  // public void Dispose()
-  // {
-  //   Dispose(true);
-  //   // GC.SuppressFinalize(this);
-  // }
-
   public void Dispose()
   {
     if (_runspacePool == null) return;
-    lock (_runspacePool)
+    try
     {
-      try
-      {
-        // _runspacePool.Close();
-        _runspacePool.Dispose();
-      }
-      finally
-      {
-        _runspacePool = null;
-      }
+      _runspacePool.Close();
+      _runspacePool.Dispose();
+    }
+    finally
+    {
+      _runspacePool = null;
     }
   }
-
 }
 
 public record ConnectionDto(string hostname, string username, string passwd, int num);
