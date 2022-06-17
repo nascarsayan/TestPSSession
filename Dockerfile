@@ -8,7 +8,7 @@ RUN apt -y update &&\
   [ ! -f libcrypto.so.1.0.0 ] && ln -s libcrypto.so libcrypto.so.1.0.0 &&\
   apt -y install netbase gss-ntlmssp
 WORKDIR /app
-EXPOSE 80
+# EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src/TestPSSession
@@ -19,5 +19,8 @@ RUN dotnet publish "TestPSSession.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
+ENV ASPNETCORE_preventHostingStartup=true
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "TestPSSession.dll"]

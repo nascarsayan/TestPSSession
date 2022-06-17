@@ -10,7 +10,7 @@ docker-push:
 	docker push ${IMG}
 
 docker-run: docker-build
-	docker run --name testpssession -it -d -p 5000:80 ${IMG}
+	docker run --memory="300m" --memory-swap="300m" --name testpssession -it -d ${IMG}
 
 docker-stop:
 	docker rm -f testpssession
