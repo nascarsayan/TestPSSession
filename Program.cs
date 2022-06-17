@@ -3,7 +3,7 @@ using System.Management.Automation.Runspaces;
 using System.Security;
 using System.Text;
 
-public class Session
+public class Session: IDisposable
 {
   private const string ShellUri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell";
   private RunspacePool? _runspacePool;
@@ -46,7 +46,7 @@ public class Session
     PowerShell shell = GetPowerShellInstance();
     shell.AddScript(scriptContent);
     var settings = new PSInvocationSettings { };
-    var pso = new PSDataCollection<PSObject>();
+    using var pso = new PSDataCollection<PSObject>();
     return Task.Factory.FromAsync(
       (callback, state) => shell.BeginInvoke(
         pso, settings, callback, state),
@@ -63,8 +63,7 @@ public class Session
           var res = new String(sb.ToString());
           sb.Clear();
           runTask.Result.Dispose();
-          pso.Dispose();
-          GC.Collect(); GC.WaitForPendingFinalizers();
+          runTask.Dispose();
           return res;
         });
   }
@@ -78,8 +77,7 @@ public class Session
     return securePassword;
   }
 
-  public void Dispose()
-  {
+  protected virtual void Dispose(bool disposing) {
     if (_runspacePool == null) return;
     try
     {
@@ -90,6 +88,16 @@ public class Session
     {
       _runspacePool = null;
     }
+  }
+
+  public void Dispose()
+  {
+    Dispose(true);
+    GC.SuppressFinalize(this);
+  }
+
+  ~Session() { 
+    Dispose(false);
   }
 }
 

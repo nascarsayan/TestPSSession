@@ -9,7 +9,8 @@ while (true)
 {
   Console.WriteLine("Starting process");
   Thread.Sleep(2000);
-  var session = new Session(connDto);
+
+  using  var session = new Session(connDto);
   for (var i = 1; i <= 20; i++)
   {
     var jobCount = 100 + i * 10;
@@ -24,8 +25,9 @@ while (true)
   }
   iter++;
   // session.Close();
-  session.Dispose();
-  GC.Collect();
-  GC.WaitForPendingFinalizers();
+  //session.Dispose();
+  //GC.Collect();
+  //GC.WaitForPendingFinalizers();
+  //GC.Collect();
   Console.WriteLine("Disposed session");
 }
