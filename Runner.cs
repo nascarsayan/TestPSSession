@@ -8,7 +8,7 @@ var iter = 1;
 while (true)
 {
   Console.WriteLine("Starting process");
-  Thread.Sleep(10000);
+  Thread.Sleep(2000);
   var session = new Session(connDto);
   for (var i = 1; i <= 20; i++)
   {
