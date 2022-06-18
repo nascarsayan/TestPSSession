@@ -24,10 +24,5 @@ while (true)
     script = "";
   }
   iter++;
-  // session.Close();
-  //session.Dispose();
-  //GC.Collect();
-  //GC.WaitForPendingFinalizers();
-  //GC.Collect();
   Console.WriteLine("Disposed session");
 }
