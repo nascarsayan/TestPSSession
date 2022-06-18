@@ -6,11 +6,11 @@ RUN apt -y update &&\
   apt -y install libssl-dev &&\
   [ ! -f libssl.so.1.0.0 ] && ln -s libssl.so libssl.so.1.0.0 &&\
   [ ! -f libcrypto.so.1.0.0 ] && ln -s libcrypto.so libcrypto.so.1.0.0 &&\
-  apt -y install netbase gss-ntlmssp
+  apt -y install gss-ntlmssp
 WORKDIR /app
 # EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM $REPO/sdk:6.0 AS build
 WORKDIR /src/TestPSSession
 COPY TestPSSession.csproj TestPSSession.csproj
 RUN dotnet restore TestPSSession.csproj
