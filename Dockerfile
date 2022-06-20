@@ -19,8 +19,8 @@ RUN dotnet publish "TestPSSession.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
-ENV DOTNET_RUNNING_IN_CONTAINER=true
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
-ENV ASPNETCORE_preventHostingStartup=true
+# ENV DOTNET_RUNNING_IN_CONTAINER=true
+# ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
+# ENV ASPNETCORE_preventHostingStartup=true
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "TestPSSession.dll"]

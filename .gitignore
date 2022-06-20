@@ -8,3 +8,4 @@ Folder.DotSettings.user
 **/*.zip
 Ref.cs
 dumps
+.env

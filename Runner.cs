@@ -7,7 +7,9 @@ string username = Environment.GetEnvironmentVariable("PSTEST_USERNAME") ?? throw
 string passwd = Environment.GetEnvironmentVariable("PSTEST_PASSWORD") ?? throw new Exception("Password not set. Please set $env:PSTEST_PASSWORD");
 string ShellUri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell";
 
-for (int i = 0; i < 1000000; i++)
+Console.WriteLine($"Hostname = '{hostname}' Username = '{username}' Password = '{passwd}'");
+
+for (int i = 0; i < 1000; i++)
 {
   var securePasswd = new PSCredential(username, StringToSecureString(passwd));
   var connectionInfo = new WSManConnectionInfo(
@@ -32,6 +34,13 @@ for (int i = 0; i < 1000000; i++)
   runspace.Close();
   runspace.Dispose();
   Console.WriteLine($"i = {i}");
+  if (i == 10 || i == 500) {
+    Console.WriteLine("Time to take memory dump");
+    Thread.Sleep(10000);
+  }
+  if (i > 500) {
+    Thread.Sleep(30000);
+  }
 }
 
 SecureString StringToSecureString(string password)
