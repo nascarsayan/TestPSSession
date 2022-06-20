@@ -7,3 +7,4 @@ Folder.DotSettings.user
 !.dockerignore
 **/*.zip
 Ref.cs
+dumps
