@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.2.4" />
+    <!-- <PackageReference Include="Naos.WinRM" Version="1.0.50" /> -->
   </ItemGroup>
 
 </Project>

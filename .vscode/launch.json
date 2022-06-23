@@ -15,7 +15,12 @@
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
       "console": "internalConsole",
-      "stopAtEntry": false
+      "stopAtEntry": false,
+      "env": {
+        "PSTEST_HOSTNAME": "10.150.170.215",
+        "PSTEST_USERNAME": "Administrator",
+        "PSTEST_PASSWORD": "Password~1",
+      }
     },
     {
       "name": ".NET Core Attach",
