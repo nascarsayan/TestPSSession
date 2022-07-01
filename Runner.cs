@@ -9,7 +9,7 @@ string ShellUri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell"
 
 bool waitForDump = bool.Parse(Environment.GetEnvironmentVariable("WAIT_FOR_DUMP") ?? "False");
 
-Console.WriteLine($"Hostname = '{hostname}' Username = '{username}' Password = '{passwd}'");
+// Console.WriteLine($"Hostname = '{hostname}' Username = '{username}' Password = '{passwd}'");
 
 for (int i = 0; i < 1000; i++)
 {
@@ -37,10 +37,14 @@ for (int i = 0; i < 1000; i++)
   runspace.Close();
   runspace.Dispose();
   Console.WriteLine($"i = {i}");
-  Thread.Sleep(500);
   if (waitForDump && (i == 10 || i == 500)) {
     Console.WriteLine("Time to take memory dump");
-    Thread.Sleep(10000);
+    Thread.Sleep(40000);
+    Console.WriteLine("Time up!");
+  }
+  Thread.Sleep(100);
+  if (i > 500) {
+    Thread.Sleep(1000);
   }
 }
 
