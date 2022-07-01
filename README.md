@@ -73,28 +73,50 @@ Copy the pdb file from `./bin/Debug/net6.0/TestPSSession.pdb` to the dump folder
 
 ### Analysis
 
-**When the program is run on Windows, the memory does not shoot up. GC works perfectly fine, and the memory usage remains bounded.**
+#### Linux
 
 In linux environment, the memory usage of the app constantly increases, irrespective of how it's run (as container, inside docker, k8s, or simply locally).
 
 The graph below was captured using [mem_usage_ui][mem_usage_ui]
 while running the program as a docker container (without sleeping for taking memory dump).
 
-![Memory Usage](./assets/testpssession_memory_usage_linux.png)
+![Memory Usage Linux](./assets/testpssession_memory_usage_linux.png)
 
 I ran the I took the heap dump at `i=10` and `i=500` by sleeping for 40 seconds. The memory usage looks like this:
 
-![cgroup Memory Usage](./assets/testpssession_memory_usage_linux_cgroup.png)
+![cgroup Memory Usage Linux](./assets/testpssession_memory_usage_linux_cgroup.png)
 
 I copied the dump and symbol files from the linux machine to a windows machine where [DotMemory][dotmemory] was installed.
 
 I opened the `core_id` memory dumps in DotMemory.
 
-`i = 10` | `i = 500`
+Linux `i = 10` | Linux `i = 500`
 :-------------------------:|:-------------------------:
-![Dump1 Dotmemory](./assets/dump1_dotmem.jpg)  |  ![Dump2 Dotmemory](./assets/dump2_dotmem.jpg)
+![Dump1 Dotmemory](./assets/dump1_linux_dotmem.jpg)  |  ![Dump2 Dotmemory](./assets/dump2_linux_dotmem.jpg)
+![Dump1 Generations](./assets/dump1_linux_dotmem_generations.jpg)  |  ![Dump2 Generations](./assets/dump2_linux_dotmem_generations.jpg)
 
 I also tried to install `lldb` on Linux, and debug the `coreCLR` memory usage, but that is still in progress.
+
+#### Windows
+
+**When the program is run on Windows, the memory does not shoot up. GC works perfectly fine, and the memory usage remains bounded.**
+
+In a PowerShell terminal, run the following. 
+```powershell
+foreach($line in Get-Content .env) { $kv = $line.split('='); $k = $kv[0]; $v = $kv[1]; if (!$k){ return;}; Set-Item "env:$k" $v; }
+$env:WAIT_FOR_DUMP="True"
+
+dotnet build
+dotnet bin\Debug\net6.0\TestPSSession.dll
+```
+
+![Memory Usage Windows](./assets/testpssession_memory_usage_windows.jpg)
+
+Win `i = 10` | Win `i = 500`
+:-------------------------:|:-------------------------:
+![Dump1 Dotmemory](./assets/dump1_win_dotmem.jpg)  |  ![Dump2 Dotmemory](./assets/dump2_win_dotmem.jpg)
+![Dump1 Generations](./assets/dump1_win_dotmem_generations.jpg)  |  ![Dump2 Generations](./assets/dump2_win_dotmem_generations.jpg)
+
 
 <!-- References -->
 [mem_usage_ui]: https://github.com/parikls/mem_usage_ui
