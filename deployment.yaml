@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: testpssession
+  name: testpssession
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testpssession
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: testpssession
+    spec:
+      containers:
+      - image: nascarsayan/testpssession:latest
+        name: testpssession
+        resources:
+          limits:
+            cpu: 200m
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 512Mi
+        envFrom:
+        - secretRef:
+            name: pscreds
+
