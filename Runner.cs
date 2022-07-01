@@ -37,12 +37,10 @@ for (int i = 0; i < 1000; i++)
   runspace.Close();
   runspace.Dispose();
   Console.WriteLine($"i = {i}");
+  Thread.Sleep(500);
   if (waitForDump && (i == 10 || i == 500)) {
     Console.WriteLine("Time to take memory dump");
     Thread.Sleep(10000);
-  }
-  if (i > 500) {
-    Thread.Sleep(30000);
   }
 }
 
