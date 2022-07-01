@@ -7,6 +7,8 @@ string username = Environment.GetEnvironmentVariable("PSTEST_USERNAME") ?? throw
 string passwd = Environment.GetEnvironmentVariable("PSTEST_PASSWORD") ?? throw new Exception("Password not set. Please set $env:PSTEST_PASSWORD");
 string ShellUri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell";
 
+bool waitForDump = bool.Parse(Environment.GetEnvironmentVariable("WAIT_FOR_DUMP") ?? "False");
+
 Console.WriteLine($"Hostname = '{hostname}' Username = '{username}' Password = '{passwd}'");
 
 for (int i = 0; i < 1000; i++)
@@ -23,18 +25,19 @@ for (int i = 0; i < 1000; i++)
   runspace.Open();
   using var pwsh = PowerShell.Create(RunspaceMode.NewRunspace);
   pwsh.Runspace = runspace;
-  // pwsh.AddScript("echo 'a'");
-  pwsh.AddScript("$i = 0");
+  var script = "return";
+  pwsh.AddScript(script);
   var x = pwsh.Invoke();
   foreach (var y in x) {
     Console.WriteLine(y.ToString().Length);
   }
+  ThrowOnError(pwsh, script);
   x.Clear();
   pwsh.Dispose();
   runspace.Close();
   runspace.Dispose();
   Console.WriteLine($"i = {i}");
-  if (i == 10 || i == 500) {
+  if (waitForDump && (i == 10 || i == 500)) {
     Console.WriteLine("Time to take memory dump");
     Thread.Sleep(10000);
   }
@@ -50,4 +53,19 @@ SecureString StringToSecureString(string password)
   var securePassword = new SecureString();
   password.ToList().ForEach(x => securePassword.AppendChar(x));
   return securePassword;
+}
+
+void ThrowOnError(PowerShell pwsh, string script) {
+  if (pwsh.Streams.Error.Count > 0)
+  {
+    var errorString = string.Join(
+        Environment.NewLine,
+        pwsh.Streams.Error.Select(
+            _ =>
+            (_.ErrorDetails == null ? null : _.ErrorDetails.ToString() + " at " + _.ScriptStackTrace)
+            ?? (_.Exception == null ? "Naos.WinRM: No error message available" : _.Exception.ToString() + " at " + _.ScriptStackTrace)));
+    throw new Exception(
+        "Failed to run script (" + script + ") on " + hostname + " got errors: "
+        + errorString);
+  }
 }

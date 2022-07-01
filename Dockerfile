@@ -6,7 +6,7 @@ RUN apt -y update &&\
   apt -y install libssl-dev &&\
   [ ! -f libssl.so.1.0.0 ] && ln -s libssl.so libssl.so.1.0.0 &&\
   [ ! -f libcrypto.so.1.0.0 ] && ln -s libcrypto.so libcrypto.so.1.0.0 &&\
-  apt -y install gss-ntlmssp
+  apt -y install netbase gss-ntlmssp
 WORKDIR /app
 # EXPOSE 80
 
