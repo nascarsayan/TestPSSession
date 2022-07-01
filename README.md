@@ -3,12 +3,13 @@
 ## TL;DR
 
 1. Leak happens only if all these conditions are met
-  - Running on Linux. On Windows, the same program running fine.
-  - Opening Remote runspace. Local runspace was not leaking memory.
+    - Running on Linux. On Windows, the same program running fine.
+    - Opening Remote runspace. Local runspace was not leaking memory.
 
-2. I have tried 
-  1. ServrGC/WorkstationGC enabled/disabled.
-  2. `GC.Collct(); GC.WaitForPendingFinalizers(); GC.Collct();`
+2. I have tried:
+
+    1. ServrGC/WorkstationGC enabled/disabled.
+    2. `GC.Collct(); GC.WaitForPendingFinalizers(); GC.Collct();`
 
 3. It's opening a remote PSSession from Linux to WIndows using WMI, Negotiate, non-SSL.
 
